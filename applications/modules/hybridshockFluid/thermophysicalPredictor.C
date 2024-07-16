@@ -33,21 +33,27 @@ License
 
 void Foam::solvers::hybridshockFluid::thermophysicalPredictor()
 {
-    massfractionpredictor();
+   // massfractionpredictor();
     
     volScalarField& e = thermo_.he();
 
-    const surfaceScalarField e_pos(interpolate(e, pos, thermo.T().name()));
-    const surfaceScalarField e_neg(interpolate(e, neg, thermo.T().name()));
+    surfaceScalarField e_pos(interpolate(e, pos, thermo.T().name()));
+    surfaceScalarField e_neg(interpolate(e, neg, thermo.T().name()));
 
     surfaceScalarField phiEp
     (
         "phiEp",
-        CbPos()*aphiv_pos()*(rho_pos()*(e_pos + 0.5*magSqr(U_pos())) + p_pos()) + (1-CbPos())*phiv_pos*(rho_pos()*(e_pos + 0.5*magSqr(U_pos())) + p_pos())
-      + CbNeg()*aphiv_neg()*(rho_neg()*(e_neg + 0.5*magSqr(U_neg())) + p_neg()) + (1-CbNeg())*phiv_neg*(rho_neg()*(e_neg + 0.5*magSqr(U_neg())) + p_neg())
-      + aSf()*(p_pos() - p_neg())
+        CbPos()*aphiv_pos()*(rho_pos()*(e_pos + 0.5*magSqr(U_pos()))) + aphiv_pos()*p_pos() + aSf()*p_pos() + 
+        CbNeg()*aphiv_neg()*(rho_neg()*(e_neg + 0.5*magSqr(U_neg()))) + aphiv_neg()*p_neg() - aSf()*p_neg() 
+    );
+    
+    surfaceScalarField phiE_linear
+    (
+        "phiE_linear",
+         (1-CbPos())*aphiv_pos()*(rho_pos()*(e_pos + 0.5*magSqr(U_pos()))) + (1-CbPos())*aSf()*(rho_pos()*(e_pos + 0.5*magSqr(U_pos()))) + (1-CbNeg())*aphiv_neg()*(rho_neg()*(e_neg + 0.5*magSqr(U_neg()))) - (1- CbNeg())*aSf()*(rho_neg()*(e_neg + 0.5*magSqr(U_neg())))
     );
 
+    
     // Make flux for pressure-work absolute
     if (mesh.moving())
     {
@@ -56,7 +62,7 @@ void Foam::solvers::hybridshockFluid::thermophysicalPredictor()
 
     fvScalarMatrix EEqn
     (
-        fvm::ddt(rho, e) + fvc::div(phiEp) + fvc::ddt(rho, K)
+        fvm::ddt(rho, e) + fvc::div(phiEp) + fvc::div(phiE_linear) + fvc::ddt(rho, K)
      ==
         fvModels().source(rho, e)
     );
@@ -81,7 +87,8 @@ void Foam::solvers::hybridshockFluid::thermophysicalPredictor()
     fvConstraints().constrain(e);
 
     thermo_.correct();
-      
+    
+       Info<< "Max rho: " << max(rho) << ", Min rho: " << min(rho) << endl; 
 }
 
 

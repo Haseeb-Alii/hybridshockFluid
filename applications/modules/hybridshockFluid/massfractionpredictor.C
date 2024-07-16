@@ -26,6 +26,7 @@ License
 #include "hybridshockFluid.H"
 #include "fvmDdt.H"
 #include "fvcDiv.H"
+#include "fvmDiv.H"
 #include "fvcDdt.H"
 #include "multivariateScheme.H"
 #include "gaussConvectionScheme.H"
@@ -40,18 +41,9 @@ void Foam::solvers::hybridshockFluid::massfractionpredictor()
         {
             volScalarField& Yi = Y_[i];
 
-            surfaceScalarField Ypos = interpolate(Yi, pos()); 
-            surfaceScalarField Yneg = interpolate(Yi, neg());
-         
-           surfaceScalarField phiYi
-           (
-              "phiYi",
-               CbPos()*aphiv_pos()*rho_pos()*Ypos +   CbNeg()*aphiv_neg()*rho_neg()*Yneg + (1-CbPos())*phiv_pos*Ypos + (1-CbNeg())*phiv_neg*Yneg
-           );
-           	
             fvScalarMatrix YiEqn
             (
-                fvm::ddt(rho, Yi) + fvc::div(phiYi)  == fvModels().source(rho, Yi)
+                 fvm::ddt(rho, Yi) + fvc::div(phi,Yi,"div(phi,Yi_h)") == fvModels().source(rho, Yi)
             );
 	    if (!inviscid)
 	    {

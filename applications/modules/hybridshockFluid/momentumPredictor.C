@@ -33,9 +33,17 @@ void Foam::solvers::hybridshockFluid::momentumPredictor()
 {
     volVectorField& U(U_);
     
-    const surfaceVectorField phiUp
+    // Printing the maximum and minimum values during runtime
+    Info<< "Max CbPosM: " << max(CbPos()) << ", Min CbPosM: " << min(CbPos()) << endl;
+    
+    surfaceVectorField phiUk
     (
-        (CbPos()*aphiv_pos()*rhoU_pos()  + CbNeg()*aphiv_neg()*rhoU_neg() + (1-CbPos())*phiv_pos*rhoU_pos() + (1-CbNeg())*phiv_neg*rhoU_neg()) + (a_pos()*p_pos() + a_neg()*p_neg())*mesh.Sf()
+        CbPos()*aphiv_pos()*rhoU_pos()  + CbNeg()*aphiv_neg()*rhoU_neg() +   (a_pos()*p_pos() + a_neg()*p_neg())*mesh.Sf()
+    );
+    
+      surfaceVectorField phiUl
+    (
+        (1-CbPos())*aphiv_pos()*rhoU_pos() + (1-CbPos())*aSf()*rhoU_pos() + (1-CbNeg())*aphiv_neg()*rhoU_neg() - (1-CbNeg())*aSf()*rhoU_neg()
     );
 
     // Construct the divDevTau matrix first
@@ -48,7 +56,7 @@ void Foam::solvers::hybridshockFluid::momentumPredictor()
 
     fvVectorMatrix UEqn
     (
-        fvm::ddt(rho, U) + fvc::div(phiUp)
+        fvm::ddt(rho, U) + fvc::div(phiUk) + fvc::div(phiUl) 
       ==
         fvModels().source(rho, U)
     );
@@ -72,6 +80,8 @@ void Foam::solvers::hybridshockFluid::momentumPredictor()
     {
         devTau = divDevTau->flux();
     }
+    
+     Info<< "Max U: " << max(U) << ", Min U: " << min(U) << endl;
 }
 
 

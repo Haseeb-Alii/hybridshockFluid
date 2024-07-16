@@ -80,28 +80,17 @@ void Foam::solvers::hybridshockFluid::clearTemporaryFields()
     a_neg.clear();
 
     aSf.clear();
+    
+    CbPos.clear();
+    CbNeg.clear();
+    
+    phiL.clear();
   
     aphiv_pos.clear();
     aphiv_neg.clear();
 
     devTau.clear();
-    
-     divU.clear();
-    curlU.clear();
        
-    faceDivPos.clear();
-    faceDivNeg.clear();
-    
-    faceCurlPos.clear(); 
-    faceCurlNeg.clear();
-        
-    DurcosPos.clear();
-    DurcosNeg.clear();
-    
-    CbPos.clear(); 
-    CbNeg.clear();
-    
-   
 }
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 Foam::solvers::hybridshockFluid::hybridshockFluid(fvMesh& mesh)
@@ -138,21 +127,33 @@ Foam::solvers::hybridshockFluid::hybridshockFluid(fvMesh& mesh)
         ),
         mesh
     ),
-
-   phiv_pos
+    
+    delta
     (
         IOobject
         (
-            "phiv_pos",
-            runTime.name(),
-            mesh,
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
+            "l",                  // Name of the field
+            runTime.name(),   // Time name for the IO object
+            mesh,                 // The mesh
+            IOobject::NO_READ,    // No need to read from file
+            IOobject::NO_WRITE  // Automatically write the field
         ),
-        
-        dimensionedScalar(dimVelocity*dimTime, 1),
+        mesh,
+        dimensionedScalar("delta", dimLength, 0.0)  // Initialize with zeros
     ),
-    
+
+ /*  phiv_pos
+  (
+      IOobject
+      (
+          "phiv_pos",
+          runTime.name(),
+          mesh,
+          Foam::IOobject::NO_READ,
+          Foam::IOobject::NO_WRITE
+      ),
+          linearInterpolate(U_) & mesh.Sf()
+  ),
     phiv_neg
     (
         IOobject
@@ -163,10 +164,67 @@ Foam::solvers::hybridshockFluid::hybridshockFluid(fvMesh& mesh)
             IOobject::NO_READ,
             IOobject::NO_WRITE
         ),
-        
         phiv_pos
     ),
+   
+    // Calculate the length scale from the cell volumes
     
+   delta
+    (
+        IOobject
+        (
+            "l",                  // Name of the field
+            runTime.name(),   // Time name for the IO object
+            mesh,                 // The mesh
+            IOobject::NO_READ,    // No need to read from file
+            IOobject::NO_WRITE  // Automatically write the field
+        ),
+        mesh,
+        dimensionedScalar("delta", dimLength, 0.0)  // Initialize with zeros
+    ),
+      
+        Cb
+  (
+      IOobject
+      (
+          "Cb",
+          runTime.name(),
+          mesh,
+          Foam::IOobject::NO_READ,
+          Foam::IOobject::NO_WRITE
+      ),
+         mesh,
+         dimensionedScalar(dimless,0.0)
+  ),
+  
+      CbPos
+  (
+      IOobject
+      (
+          "CbPos",
+          runTime.name(),
+          mesh,
+          Foam::IOobject::NO_READ,
+          Foam::IOobject::NO_WRITE
+      ),
+         mesh,
+         dimensionedScalar(dimless,0.0)
+  ),
+  
+        CbNeg
+  (
+      IOobject
+      (
+          "CbNeg",
+          runTime.name(),
+          mesh,
+         Foam::IOobject::NO_READ,
+          Foam::IOobject::NO_WRITE
+      ),
+           mesh,
+         dimensionedScalar(dimless,0.0)
+  ),
+   */  
     phi_
     (
         IOobject
@@ -180,8 +238,6 @@ Foam::solvers::hybridshockFluid::hybridshockFluid(fvMesh& mesh)
         linearInterpolate(rho_*U_) & mesh.Sf()
     ),
     
-
-
     K("K", 0.5*magSqr(U_)),
 
     inviscid

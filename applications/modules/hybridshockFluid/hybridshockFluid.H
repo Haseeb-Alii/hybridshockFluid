@@ -104,13 +104,11 @@ protected:
         //- Velocity field
         volVectorField U_;
         
-        surfaceScalarField phiv_pos;
-        surfaceScalarField phiv_neg;
-       
+        volScalarField delta;
         
         //- Mass-flux field
         surfaceScalarField phi_;
-       
+              
 
         //- Kinetic energy field
         //  Used in the energy equation
@@ -161,19 +159,13 @@ protected:
               
 
         tmp<surfaceScalarField> aSf;
-
-        tmp<volScalarField> divU;
-        tmp<volVectorField> curlU;
-       
-        tmp<surfaceScalarField> faceDivPos;
-        tmp<surfaceScalarField> faceDivNeg;
-        tmp<surfaceVectorField> faceCurlPos; 
-        tmp<surfaceVectorField> faceCurlNeg;
         
-        tmp<surfaceScalarField> DurcosPos;
-        tmp<surfaceScalarField> DurcosNeg;
-        tmp<surfaceScalarField> CbPos; 
+        tmp<surfaceScalarField> CbPos;
+        
         tmp<surfaceScalarField> CbNeg;
+        
+        tmp<surfaceScalarField> phiL;
+         
         
         tmp<surfaceScalarField> aphiv_pos;
         tmp<surfaceScalarField> aphiv_neg;
@@ -257,7 +249,7 @@ public:
         //- Reference to the composition
         const PtrList<volScalarField>& Y;
         
-                
+                       
 
     //- Runtime type information
     TypeName("hybridshockFluid");

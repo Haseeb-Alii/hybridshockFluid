@@ -32,10 +32,10 @@ License
 void Foam::solvers::hybridshockFluid::correctDensity()
 {
     volScalarField& rho(rho_);
-
+      
     fvScalarMatrix rhoEqn
     (
-        fvm::ddt(rho) + fvc::div(phi)
+        fvm::ddt(rho) + fvc::div(phi) + fvc::div(phiL())
       ==
         fvModels().source(rho)
     );
@@ -45,6 +45,8 @@ void Foam::solvers::hybridshockFluid::correctDensity()
     rhoEqn.solve();
 
     fvConstraints().constrain(rho);
+    
+    Info<< "Max rho: " << max(rho) << ", Min rho: " << min(rho) << endl;
 }
 
 
