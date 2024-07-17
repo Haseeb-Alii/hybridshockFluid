@@ -34,7 +34,6 @@ License
     p_.ref() = rho()/psi();
     p_.correctBoundaryConditions();
     rho_.boundaryFieldRef() == psi.boundaryField()*p.boundaryField();
-     Info<< "Max p: " << max(p) << ", Min p: " << min(p) << endl;
  }
 
 

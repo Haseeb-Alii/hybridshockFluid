@@ -33,36 +33,41 @@ License
 
 void Foam::solvers::hybridshockFluid::thermophysicalPredictor()
 {
-   // massfractionpredictor();
-    
+   massfractionpredictor();
+        
     volScalarField& e = thermo_.he();
 
-    surfaceScalarField e_pos(interpolate(e, pos, thermo.T().name()));
-    surfaceScalarField e_neg(interpolate(e, neg, thermo.T().name()));
+   const surfaceScalarField e_pos(interpolate(e, pos, thermo.T().name()));
+   const surfaceScalarField e_neg(interpolate(e, neg, thermo.T().name()));
 
-    surfaceScalarField phiEp
+// Calculation of KT or KNP flux 
+
+  surfaceScalarField phiE_shock
     (
-        "phiEp",
+        "phiE_shock",
         CbPos()*aphiv_pos()*(rho_pos()*(e_pos + 0.5*magSqr(U_pos()))) + aphiv_pos()*p_pos() + aSf()*p_pos() + 
         CbNeg()*aphiv_neg()*(rho_neg()*(e_neg + 0.5*magSqr(U_neg()))) + aphiv_neg()*p_neg() - aSf()*p_neg() 
     );
-    
-    surfaceScalarField phiE_linear
+// Calculation of linear flux 
+   
+  surfaceScalarField phiE_linear
     (
         "phiE_linear",
          (1-CbPos())*aphiv_pos()*(rho_pos()*(e_pos + 0.5*magSqr(U_pos()))) + (1-CbPos())*aSf()*(rho_pos()*(e_pos + 0.5*magSqr(U_pos()))) + (1-CbNeg())*aphiv_neg()*(rho_neg()*(e_neg + 0.5*magSqr(U_neg()))) - (1- CbNeg())*aSf()*(rho_neg()*(e_neg + 0.5*magSqr(U_neg())))
     );
-
-    
+     
     // Make flux for pressure-work absolute
+    
     if (mesh.moving())
     {
-        phiEp += mesh.phi()*(a_pos()*p_pos() + a_neg()*p_neg());
+        phiE_shock += mesh.phi()*(a_pos()*p_pos() + a_neg()*p_neg());
     }
 
+  surfaceScalarField phiET = phiE_shock + phiE_linear;
+  
     fvScalarMatrix EEqn
     (
-        fvm::ddt(rho, e) + fvc::div(phiEp) + fvc::div(phiE_linear) + fvc::ddt(rho, K)
+        fvm::ddt(rho, e) + fvc::div(phiET) + fvc::ddt(rho, K)
      ==
         fvModels().source(rho, e)
     );
@@ -87,8 +92,6 @@ void Foam::solvers::hybridshockFluid::thermophysicalPredictor()
     fvConstraints().constrain(e);
 
     thermo_.correct();
-    
-       Info<< "Max rho: " << max(rho) << ", Min rho: " << min(rho) << endl; 
 }
 
 

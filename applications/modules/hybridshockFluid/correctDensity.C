@@ -32,10 +32,14 @@ License
 void Foam::solvers::hybridshockFluid::correctDensity()
 {
     volScalarField& rho(rho_);
+    
+    // Calculating total flux by adding the KT or KNP flux and linear flux
+    
+    surfaceScalarField phirhoT = phi + phiL();
       
     fvScalarMatrix rhoEqn
     (
-        fvm::ddt(rho) + fvc::div(phi) + fvc::div(phiL())
+        fvm::ddt(rho) + fvc::div(phirhoT)
       ==
         fvModels().source(rho)
     );
@@ -45,8 +49,7 @@ void Foam::solvers::hybridshockFluid::correctDensity()
     rhoEqn.solve();
 
     fvConstraints().constrain(rho);
-    
-    Info<< "Max rho: " << max(rho) << ", Min rho: " << min(rho) << endl;
+
 }
 
 

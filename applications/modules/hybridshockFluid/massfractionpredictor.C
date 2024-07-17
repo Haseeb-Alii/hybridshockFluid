@@ -41,10 +41,33 @@ void Foam::solvers::hybridshockFluid::massfractionpredictor()
         {
             volScalarField& Yi = Y_[i];
 
+            surfaceScalarField Ypos = interpolate(Yi, pos(),"reconstruct(Yi)"); 
+            surfaceScalarField Yneg = interpolate(Yi, neg(),"reconstruct(Yi)");
+            
+           // Calcaultion of KT or KNP flux
+          const surfaceScalarField phiYi_shock
+           (
+              "phiYi_shock",
+               aphiv_pos()*rho_pos()*Ypos +   aphiv_neg()*rho_neg()*Yneg
+           );
+           
+          // Calculation of linear flux 
+           	
+          const surfaceScalarField phiYi_linear
+           (
+              "phiYi_linear",
+               aphiv_pos()*rho_pos()*Ypos + aSf()*rho_pos()*Ypos + aphiv_neg()*rho_neg()*Yneg - aSf()*rho_neg()*Yneg
+           );
+           
+          // Calculation of total flux
+          
+          const surfaceScalarField phiYi = phiYi_shock + phiYi_linear;           	
+        
             fvScalarMatrix YiEqn
             (
-                 fvm::ddt(rho, Yi) + fvc::div(phi,Yi,"div(phi,Yi_h)") == fvModels().source(rho, Yi)
+                fvm::ddt(rho, Yi) + fvc::div(phiYi)  == fvModels().source(rho, Yi)
             );
+            
 	    if (!inviscid)
 	    {
 	    YiEqn += thermophysicalTransport->divj(Yi);    

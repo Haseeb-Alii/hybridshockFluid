@@ -243,6 +243,8 @@ public:
         //- Reference to the velocity field
         const volVectorField& U;
         
+        volScalarField Cb;
+        
         //- Reference to the mass-flux field
         const surfaceScalarField& phi;
         
@@ -250,7 +252,6 @@ public:
         const PtrList<volScalarField>& Y;
         
                        
-
     //- Runtime type information
     TypeName("hybridshockFluid");
 

@@ -140,45 +140,45 @@ void Foam::solvers::hybridshockFluid::fluxPredictor()
 /* Gradients and other intermediate fields */
     
  
-    volScalarField divU = fvc::div(U);       // Divergence of U
-    volVectorField curlU = fvc::curl(U);     // Vorticity of V
+ volScalarField divU = fvc::div(U,"div(U)");       // Divergence of U   
+ volVectorField curlU = fvc::curl(U);              // Vorticity of V
     
-   const dimensionedScalar epsilon1("epsilon1", dimless/dimTime/dimTime, 1e-6); 
+ const dimensionedScalar epsilon1("epsilon1", dimless/dimTime/dimTime, 1e-5); 
     
-// Calculating the shock sensor
+   // Calculating the shock sensor
 
     volScalarField divU2 = sqr(divU);
+    
     volScalarField curlU2 = magSqr(curlU);
+    
+    // Calcuting the Durcos Sensor term
+    
     volScalarField Durcos = divU2/(divU2+curlU2+epsilon1);
     
+    // Calculating the grid length scale
     
-delta.primitiveFieldRef() = cbrt(mesh.V()); // Expression for the field
-  
+   delta.primitiveFieldRef() = cbrt(mesh.V()); 
+
 //  Calculation of modified shock indicator by Bhagatwala and Lele
 
-volScalarField Cb
-(
-    "Cb", max(min(0.5*(1 - tanh(2.5 + 10*((divU*delta)/c)))*Durcos, scalar(1.0)), scalar(0.1))
-);  
+ Cb = max(min(0.5*(1 - tanh(2.5 + 10*((divU*delta)/c)))*Durcos, scalar(1.0)), scalar(0.1));
 
-   CbPos = interpolate(Cb, pos());
-   CbNeg = interpolate(Cb, neg());   
-   
-// Printing the maximum and minimum values during runtime
-    Info<< "Max Cb: " << max(Cb) << ", Min CbPos: " << min(Cb) << endl;
-
+  CbPos =  interpolate(Cb,pos(),"interpolate(Cb)");
+  
+  CbNeg =  interpolate(Cb,neg(),"interpolate(Cb)");
+  
     aphiv_pos = surfaceScalarField::New("aphiv_pos", phiv_pos - aSf());
     aphiv_neg = surfaceScalarField::New("aphiv_neg", phiv_neg + aSf());
     
-    
+
     /*****************Calculation of phi flux at each face by combining contribution of Kurganov flux scheme with 
     linear flux scheme and contribution of each flux term in total phi depend on value 
-    of Cb which is between 0<Cb<1. Cb value becomes zero at no shock location and flux is calcualted by using 
+    of Cb which is between 0.1<Cb<1. Cb value becomes zero at no shock location and flux is calcualted by using 
     simple second order central diferencing/ Gauss linear scheme while Cb value vary between 0 and 1 for flow 
     at shock locations*/  
 
     phi_ = CbPos()*aphiv_pos()*rho_pos() + CbNeg()*aphiv_neg()*rho_neg();
-    phiL = (1-CbPos())*phiv_pos*rho_pos() + (1-CbNeg())*phiv_neg*rho_neg();
+    phiL = (1-CbPos())*aphiv_pos()*rho_pos()  + (1-CbNeg())*aphiv_neg()*rho_neg() + (1-CbPos())*aSf()*rho_pos() -(1-CbNeg())*aSf()*rho_neg();
 }
 
 // ************************************************************************* //

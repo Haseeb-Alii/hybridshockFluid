@@ -132,7 +132,7 @@ Foam::solvers::hybridshockFluid::hybridshockFluid(fvMesh& mesh)
     (
         IOobject
         (
-            "l",                  // Name of the field
+            "delta",                  // Name of the field
             runTime.name(),   // Time name for the IO object
             mesh,                 // The mesh
             IOobject::NO_READ,    // No need to read from file
@@ -183,19 +183,6 @@ Foam::solvers::hybridshockFluid::hybridshockFluid(fvMesh& mesh)
         dimensionedScalar("delta", dimLength, 0.0)  // Initialize with zeros
     ),
       
-        Cb
-  (
-      IOobject
-      (
-          "Cb",
-          runTime.name(),
-          mesh,
-          Foam::IOobject::NO_READ,
-          Foam::IOobject::NO_WRITE
-      ),
-         mesh,
-         dimensionedScalar(dimless,0.0)
-  ),
   
       CbPos
   (
@@ -224,7 +211,20 @@ Foam::solvers::hybridshockFluid::hybridshockFluid(fvMesh& mesh)
            mesh,
          dimensionedScalar(dimless,0.0)
   ),
-   */  
+   */
+   Cb
+  (
+      IOobject
+      (
+          "Cb",
+          runTime.name(),
+          mesh,
+          Foam::IOobject::READ_IF_PRESENT,
+          Foam::IOobject::AUTO_WRITE
+      ),
+         mesh,
+         dimensionedScalar(dimless,0.0)
+  ),     
     phi_
     (
         IOobject
