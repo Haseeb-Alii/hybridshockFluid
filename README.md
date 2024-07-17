@@ -1,83 +1,23 @@
-Hybrid Central Scheme for Convective Terms in Fluid Dynamics
+# Low dissipative hybrid central solver for LES of supersonic turbulent flow.
+## Release date: 17 July 2024
+## Overview:
 
-This repository contains the implementation of a hybrid central scheme combining linear flux and KNP or KT flux based on the modified Bagatwala and Lele shock sensor. The scheme assigns weights to each flux depending on the shock location, using the KNP or KT flux in shock regions and linear flux in expansion and other regions.
-Table of Contents
+This repository contains the OpenFOAM implementation of a hybrid central scheme orginally implemeneted by Lee et al. [1][2] combining linear flux and KNP or KT flux for convective terms based on the modified Bhagatwala and Lele shock sensor [3]. The hybrid central scheme of Lee et al. [1] assigns weights to each flux depending on the shock location, using the KNP or KT flux in shock regions and linear flux in expansion and other regions. You can find more details in orginal paper of Lee et al. [1]. This code implements a hybrid central scheme for discretizing the convective terms in full Navier-Stokes equations for supersonic compressible flows. The code utilizes a modified shock sensor by Bhagatwala and Lele shock sensor [2] to determine the appropriate flux to use in different regions, ensuring accuracy and stability in the presence of shocks. In "hybridshockFluid", orginal solver "shockFluid" has been also modified to handle the multile species by implementing the species transport equation. Current "hybridshockFluid" solver has been developed and tested for OpenFOAM 11.  
 
-    Introduction
-    Shock Sensor
-    Hybrid Flux
-    Installation
-    Usage
-    Examples
-    Contributing
-    License
-    Acknowledgments
+## Installation
 
-Introduction
+#### 1. Clone the repository
+git clone https://github.com/Haseeb-Alii/hybridshockFluid.git
 
-This project implements a hybrid central scheme for solving convective terms in fluid dynamics. The scheme utilizes a modified shock sensor by Bagatwala and Lele to determine the appropriate flux to use in different regions, ensuring accuracy and stability in the presence of shocks.
-Shock Sensor
+#### 2. Navigate into the cloned repository
+cd hybridshockFluid
 
-The shock sensor by Bagatwala and Lele is defined as:
+#### 3. Source openFOAM
 
-Θ=12(1−tanh⁡(2.5+10Δc∣∇⋅U∣))×(∇⋅U)2(∇⋅U)2+(∇×U)2+ϵ
-Θ=21​(1−tanh(2.5+10∣∇⋅U∣Δc​))×(∇⋅U)2+(∇×U)2+ϵ(∇⋅U)2​
+#### 4. Compile it
+./Allwmake
 
-Where:
-
-    ΘΘ is the shock sensor value.
-    ΔcΔc is the change in a given quantity cc.
-    ∇⋅U∇⋅U and ∇×U∇×U are the divergence and curl of the velocity field UU, respectively.
-    ϵϵ is a small positive constant to prevent division by zero.
-
-Hybrid Flux
-
-The hybrid flux for the convective term is given by:
-
-∫V∇⋅[ρUΦ] dV≈ΘfFd+(1−Θf)Fc
-∫V​∇⋅[ρUΦ]dV≈Θf​Fd​+(1−Θf​)Fc​
-
-Where:
-
-    FdFd​ is the diffusive flux (KNP or KT flux).
-    FcFc​ is the central flux (linear flux).
-    ΘfΘf​ is the flux weight determined by the shock sensor.
-
-Installation
-
-Clone the repository:
-
-sh
-
-git clone git@github.com:your-username/your-repository.git
-cd your-repository
-
-Install the necessary dependencies:
-
-sh
-
-# Example for Python projects
-pip install -r requirements.txt
-
-Usage
-
-Provide instructions on how to use the code. For example:
-
-sh
-
-# Example command to run the code
-python main.py --input data/input_file.txt --output results/output_file.txt
-
-Examples
-
-Provide examples to help users understand how to use your project. Include code snippets and expected outputs.
-
-sh
-
-# Example of running a test case
-python main.py --input data/test_input.txt --output results/test_output.txt
-
-Contributing
+## Contributing
 
 Contributions are welcome! Please follow these steps to contribute:
 
@@ -86,12 +26,15 @@ Contributions are welcome! Please follow these steps to contribute:
     Make your changes and commit them: git commit -m 'Add new feature'.
     Push to the branch: git push origin feature-name.
     Submit a pull request.
-
-Please ensure your code follows the project's coding standards and passes all tests.
-License
+    
+## License
 
 This project is licensed under the MIT License. See the LICENSE file for details.
-Acknowledgments
 
-    Thanks to Bagatwala and Lele for the shock sensor methodology.
-    Thanks to all contributors and users.
+#### References:
+
+  - [1]. Lee, Yachao & Yao, Wei & Fan, Xuejun. (2018). Low-Dissipative Hybrid Compressible Solver Designed for Large-Eddy Simulation of Supersonic Turbulent Flows. AIAA Journal. 56. 1-11. 10.2514/1.J056404. 
+  - [2]. Yachao, Lee & Yao, Wei & Fan, Xuejun. (2017). A low-dissipation scheme based on OpenFoam designed for large eddy simulation in compressible flow. 10.2514/6.2017-2444. 
+  - [3]. Bhagatwala, Ankit & Lele, Sanjiva. (2009). A modified artificial viscosity approach for compressible turbulence simulations. J. Comput. Physics. 228. 4965-4969. 10.1016/j.jcp.2009.04.009. 
+
+
